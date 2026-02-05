@@ -1,8 +1,46 @@
 import React, { useState, useMemo } from "react";
 import { createAvatar } from "@dicebear/core";
 import { notionists } from "@dicebear/collection";
+type ProfileProps = {
+	onUpdateProfile: (data: {
+		displayName?: string;
+		avatar?: { seed: string };
+	}) => void;
+};
+export function Profile({ onUpdateProfile }: ProfileProps) {
+	function debounce(fn: Function, delay: number) {
+		let timer: number | undefined;
 
-export function Profile() {
+		return (...args: any[]) => {
+			clearTimeout(timer);
+			timer = window.setTimeout(() => {
+				fn(...args);
+			}, delay);
+		};
+	}
+	const debouncedProfileUpdate = React.useMemo(() => {
+		return debounce(onUpdateProfile, 1500); // 1.5s
+	}, [onUpdateProfile]);
+	function throttle(fn: Function, limit: number) {
+		let inThrottle = false;
+
+		return (...args: any[]) => {
+			if (!inThrottle) {
+				fn(...args);
+				inThrottle = true;
+				setTimeout(() => (inThrottle = false), limit);
+			}
+		};
+	}
+	const throttledAvatarUpdate = React.useMemo(() => {
+		return throttle((seed: string) => {
+			onUpdateProfile({ avatar: { seed } });
+		}, 2000); // 2s
+	}, [onUpdateProfile]);
+
+
+
+
 	const [name, setName] = useState("Joe");
 	const [tempName, setTempName] = useState("Joe");
 	const [isEditing, setIsEditing] = useState(false);
@@ -34,6 +72,8 @@ export function Profile() {
 			setTempName(name);
 			setIsEditing(false);
 		}
+		debouncedProfileUpdate({ displayName: name });
+
 	};
 
 	const handleCancel = () => {
@@ -44,8 +84,9 @@ export function Profile() {
 
 	// 🔹 Randomize avatar (seed rotation)
 	const randomizeAvatar = () => {
-		setAvatarSeed(crypto.randomUUID());
-        console.log(avatarSeed);
+		const newSeed = crypto.randomUUID();
+		setAvatarSeed(newSeed);
+		throttledAvatarUpdate(newSeed);
 	};
 
 	return (
