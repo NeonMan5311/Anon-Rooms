@@ -1,16 +1,30 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
+type RoomUser = {
+	id: string;
+	name: string;
+	avatar: { seed: string };
+	micOn: boolean;
+};
+
+type RoomMessage = {
+	id: string;
+	senderId: string;
+	text: string;
+	timestamp: number;
+	isMe?: boolean;
+};
+
 export function useRoomSocket(roomId: string, clientId: string) {
 	const socketRef = useRef<Socket | null>(null);
 
-	const [users, setUsers] = useState<any[]>([]);
-	const [messages, setMessages] = useState<any[]>([]);
+	const [users, setUsers] = useState<RoomUser[]>([]);
+	const [messages, setMessages] = useState<RoomMessage[]>([]);
 	const [expiresAt, setExpiresAt] = useState<number | null>(null);
-    const [selfId, setSelfId] = useState<string | null>(null);
+	const [hostName, setHostName] = useState<string>("Host");
+	const [selfId, setSelfId] = useState<string | null>(null);
 	const selfIdRef = useRef<string | null>(null);
-
-	
 
 	useEffect(() => {
 		const socket = io(
@@ -25,14 +39,15 @@ export function useRoomSocket(roomId: string, clientId: string) {
 			selfIdRef.current = data.selfId;
 			setSelfId(data.selfId);
 			setUsers(data.users);
+			setExpiresAt(data.expiresAt ?? null);
+			setHostName(data.hostName ?? "Host");
 			setMessages(
-				data.messages.map((m) => ({
+				data.messages.map((m: RoomMessage) => ({
 					...m,
-					isMe: false,
+					isMe: m.senderId === data.selfId,
 				}))
 			);
 		});
-
 
 		socket.on("NEW_MESSAGE", (message) => {
 			const myId = selfIdRef.current;
@@ -41,7 +56,7 @@ export function useRoomSocket(roomId: string, clientId: string) {
 				...prev,
 				{
 					...message,
-					isMe: false,
+					isMe: message.senderId === myId,
 				},
 			]);
 		});
@@ -57,8 +72,6 @@ export function useRoomSocket(roomId: string, clientId: string) {
 			setUsers((prev) => prev.filter((u) => u.id !== userId));
 		});
 
-
-
 		socket.on("USER_UPDATED", (payload) => {
 			setUsers((prev) =>
 				prev.map((u) =>
@@ -71,6 +84,10 @@ export function useRoomSocket(roomId: string, clientId: string) {
 						: u
 				)
 			);
+		});
+
+		socket.on("HOST_CHANGED", (payload) => {
+			setHostName(payload.hostName ?? "Host");
 		});
 
 		socket.on("VOICE_STATE_UPDATED", (payload) => {
@@ -106,16 +123,26 @@ export function useRoomSocket(roomId: string, clientId: string) {
 	const toggleMic = (enabled: boolean) => {
 		socketRef.current?.emit("TOGGLE_MIC", { enabled });
 	};
+
 	const userMap = useMemo(() => {
 		const map = new Map<string, string>();
 		users.forEach((u) => {
 			map.set(u.id, u.name);
 		});
 		return map;
-	}, [users]);	return {
+	}, [users]);
+
+	const selfUser = useMemo(
+		() => users.find((u) => u.id === selfId) ?? null,
+		[users, selfId]
+	);
+
+	return {
 		users,
 		messages,
 		expiresAt,
+		hostName,
+		selfUser,
 		userMap,
 		sendMessage,
 		updateProfile,

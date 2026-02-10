@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { createAvatar } from "@dicebear/core";
 import { notionists } from "@dicebear/collection";
 type ProfileProps = {
@@ -6,12 +6,18 @@ type ProfileProps = {
 		displayName?: string;
 		avatar?: { seed: string };
 	}) => void;
+	initialName?: string;
+	initialAvatarSeed?: string;
 };
-export function Profile({ onUpdateProfile }: ProfileProps) {
-	function debounce(fn: Function, delay: number) {
+export function Profile({
+	onUpdateProfile,
+	initialName,
+	initialAvatarSeed,
+}: ProfileProps) {
+	function debounce<T extends unknown[]>(fn: (...args: T) => void, delay: number) {
 		let timer: number | undefined;
 
-		return (...args: any[]) => {
+		return (...args: T) => {
 			clearTimeout(timer);
 			timer = window.setTimeout(() => {
 				fn(...args);
@@ -21,10 +27,10 @@ export function Profile({ onUpdateProfile }: ProfileProps) {
 	const debouncedProfileUpdate = React.useMemo(() => {
 		return debounce(onUpdateProfile, 1500); // 1.5s
 	}, [onUpdateProfile]);
-	function throttle(fn: Function, limit: number) {
+	function throttle<T extends unknown[]>(fn: (...args: T) => void, limit: number) {
 		let inThrottle = false;
 
-		return (...args: any[]) => {
+		return (...args: T) => {
 			if (!inThrottle) {
 				fn(...args);
 				inThrottle = true;
@@ -41,13 +47,15 @@ export function Profile({ onUpdateProfile }: ProfileProps) {
 
 
 
-	const [name, setName] = useState("Joe");
-	const [tempName, setTempName] = useState("Joe");
+	const [name, setName] = useState(initialName ?? "Anon");
+	const [tempName, setTempName] = useState(initialName ?? "Anon");
 	const [isEditing, setIsEditing] = useState(false);
 	const [error, setError] = useState("");
 
 	// 🔹 Avatar seed (deterministic input)
-	const [avatarSeed, setAvatarSeed] = useState(() => crypto.randomUUID());
+	const [avatarSeed, setAvatarSeed] = useState(
+		() => initialAvatarSeed ?? crypto.randomUUID()
+	);
 
 	const MAX_LENGTH = 10;
 
@@ -58,7 +66,7 @@ export function Profile({ onUpdateProfile }: ProfileProps) {
 		}).toString();
 	}, [avatarSeed]);
 
-	const handleNameChange = (e) => {
+	const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const cleanInput = e.target.value.replace(/[^a-zA-Z0-9]/g, "");
 		setName(cleanInput);
 		if (error) setError("");

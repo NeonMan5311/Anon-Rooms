@@ -10,6 +10,7 @@ type ChatProps = {
 		timestamp: number;
 		isMe?: boolean;
 	}[];
+	userMap: Map<string, string>;
 	onSend: (text: string) => void;
 };
 
@@ -23,9 +24,11 @@ export function Chat({ messages, onSend, userMap }: ChatProps) {
 	};
 
 	return (
-		<div className="flex flex-col h-full w-full min-h-0">
+		<div className="flex h-full w-full min-h-0 flex-col overflow-hidden">
 			{/* Messages */}
-			<MessageList messages={messages} userMap={userMap} />
+			<div className="flex-1 min-h-0 overflow-y-auto px-6 pt-6">
+				<MessageList messages={messages} userMap={userMap} />
+			</div>
 
 			{/* Typing indicator (placeholder for later) */}
 			<div className="px-6 py-1 text-sm text-white/50">
@@ -33,7 +36,7 @@ export function Chat({ messages, onSend, userMap }: ChatProps) {
 			</div>
 
 			{/* Input */}
-			<div className="p-4 border-t border-white/10">
+			<div className="shrink-0 border-t border-white/10 p-4">
 				<div className="flex gap-2">
 					<input
 						value={message}

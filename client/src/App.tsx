@@ -14,13 +14,11 @@ function App() {
 	// 1️⃣ identity
 	const roomId = getRoomId();
 	const clientId = getClientId();
+	const room = useRoomSocket(roomId || "", clientId);
 
 	if (!roomId) {
 		return <div className="text-white p-4">Invalid room</div>;
 	}
-
-	// 2️⃣ socket + state
-	const room = useRoomSocket(roomId, clientId);
 
 	return (
 		<div className="w-screen h-full bg-[hsl(0,0%,0%)]">
@@ -29,7 +27,12 @@ function App() {
 				<div className="grid h-full min-h-0 grid-rows-2 gap-3">
 					{/* Profile */}
 					<Card>
-						<Profile onUpdateProfile={room.updateProfile} />
+						<Profile
+							key={room.selfUser?.id ?? "self-loading"}
+							onUpdateProfile={room.updateProfile}
+							initialName={room.selfUser?.name}
+							initialAvatarSeed={room.selfUser?.avatar?.seed}
+						/>
 					</Card>
 
 					{/* Participants */}
@@ -51,7 +54,7 @@ function App() {
 					{/* Room info */}
 					<RoomInfo
 						roomId={roomId}
-						expiresAt={room.expiresAt}
+						expiresAt={room.expiresAt ?? 0}
 						hostName={room.hostName}
 					/>
 

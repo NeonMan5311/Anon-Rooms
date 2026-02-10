@@ -8,9 +8,21 @@ export function registerSocketHandlers(io) {
 
 		/*JOIN ROOM
 		*/
-		socket.on("JOIN_ROOM", ({ roomId, clientId }) => {
+		socket.on("JOIN_ROOM", (payload = {}) => {
+			const { roomId, clientId } = payload;
+
+			if (!roomId || !clientId) {
+				socket.emit("JOIN_ERROR", {
+					message: "roomId and clientId are required.",
+				});
+				return;
+			}
+
 			const room = getRoom(roomId);
-			if (!room) return;
+			if (!room) {
+				socket.emit("ROOM_NOT_FOUND");
+				return;
+			}
 
 			if (Date.now() > room.expiresAt) {
 				socket.emit("ROOM_EXPIRED");
@@ -18,15 +30,21 @@ export function registerSocketHandlers(io) {
 				return;
 			}
 
-			if (room.users.size >= 10) return;
-
 			let user = room.users.get(clientId);
+
+			if (!user && room.users.size >= 10) {
+				socket.emit("ROOM_FULL", {
+					message: "This room already has 10 users.",
+					maxUsers: 10,
+				});
+				return;
+			}
 
 			if (!user) {
 				user = {
 					clientId,
 					roomUserId: id("anon_"),
-					displayName: `Anon-${id().slice(0, 4)}`,
+					displayName: `Anon-${id().slice(0, 4)}`, // Generate a random display name
 					avatar: { seed: id() },
 					voice: { micOn: false },
 					lastProfileUpdate: 0,
@@ -42,7 +60,11 @@ export function registerSocketHandlers(io) {
 			socket.join(room.id);
 
 			// ✅ ASSIGN HOST
-			if (!room.hostId) {
+			const hostExists = [...room.users.values()].some(
+				(u) => u.roomUserId === room.hostId
+			);
+
+			if (!room.hostId || !hostExists) {
 				room.hostId = user.roomUserId;
 			}
 
@@ -77,7 +99,9 @@ export function registerSocketHandlers(io) {
 
 		/*SEND MESSAGE
 		*/
-		socket.on("SEND_MESSAGE", ({ text }) => {
+		socket.on("SEND_MESSAGE", (payload = {}) => {
+			const { text } = payload;
+
 			if (!currentRoom || !currentUser) return;
 
 			if (Date.now() > currentRoom.expiresAt) return;
@@ -98,7 +122,9 @@ export function registerSocketHandlers(io) {
 
 		/*PROFILE UPDATE
 		*/
-		socket.on("UPDATE_PROFILE", ({ displayName, avatar }) => {
+		socket.on("UPDATE_PROFILE", (payload = {}) => {
+			const { displayName, avatar } = payload;
+
 			if (!currentUser || !currentRoom) return;
 
 			const time = Date.now();
@@ -107,8 +133,11 @@ export function registerSocketHandlers(io) {
 			if (time - currentUser.lastProfileUpdate < 1000) return;
 			currentUser.lastProfileUpdate = time;
 
-			if (displayName) {
-				currentUser.displayName = displayName.slice(0, 10);
+			if (typeof displayName === "string") {
+				const trimmed = displayName.trim();
+				if (trimmed) {
+					currentUser.displayName = trimmed.slice(0, 10);
+				}
 			}
 
 			if (avatar?.seed) {
@@ -123,8 +152,11 @@ export function registerSocketHandlers(io) {
 		});
 
 		/*MIC TOGGLE (MAX 3)*/
-		socket.on("TOGGLE_MIC", ({ enabled }) => {
+		socket.on("TOGGLE_MIC", (payload = {}) => {
+			const { enabled } = payload;
+
 			if (!currentRoom || !currentUser) return;
+			if (typeof enabled !== "boolean") return;
 
 			if (currentUser.voice.micOn === enabled) return;
 
@@ -149,6 +181,9 @@ export function registerSocketHandlers(io) {
 
 		socket.on("disconnect", () => {
 			if (!currentRoom || !currentUser) return;
+
+			const wasHost = currentRoom.hostId === currentUser.roomUserId;
+
 			// Turn mic off
 			if (currentUser.voice.micOn) {
 				io.to(currentRoom.id).emit("VOICE_STATE_UPDATED", {
@@ -158,6 +193,18 @@ export function registerSocketHandlers(io) {
 			}
 			// Remove user
 			currentRoom.users.delete(currentUser.clientId);
+
+			if (wasHost) {
+				const nextHost = currentRoom.users.values().next().value ?? null;
+				currentRoom.hostId = nextHost?.roomUserId ?? null;
+
+				if (nextHost) {
+					io.to(currentRoom.id).emit("HOST_CHANGED", {
+						hostId: nextHost.roomUserId,
+						hostName: nextHost.displayName,
+					});
+				}
+			}
 
 			io.to(currentRoom.id).emit("USER_LEFT", {
 				userId: currentUser.roomUserId,
