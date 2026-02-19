@@ -111,6 +111,7 @@ export function registerSocketHandlers(io) {
 			const message = {
 				id: id("msg_"),
 				senderId: currentUser.roomUserId,
+				senderName: currentUser.displayName,
 				text: text.trim(),
 				timestamp: now(),
 			};

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "./components/ui/card";
 
@@ -15,16 +16,47 @@ function App() {
 	const roomId = getRoomId();
 	const clientId = getClientId();
 	const room = useRoomSocket(roomId || "", clientId);
+	const [mobilePanel, setMobilePanel] = useState<"chat" | "people" | "room">(
+		"chat"
+	);
 
 	if (!roomId) {
 		return <div className="text-white p-4">Invalid room</div>;
 	}
 
 	return (
-		<div className="w-screen h-full bg-[hsl(0,0%,0%)]">
-			<div className="grid grid-cols-[280px_1fr_320px] w-full h-screen p-4 gap-3 text-white min-h-0">
+		<div className="h-screen w-screen bg-[hsl(0,0%,0%)] text-white">
+			<div className="flex items-center gap-2 px-3 pb-1 pt-3 lg:hidden">
+				<Button
+					variant={mobilePanel === "chat" ? "default" : "secondary"}
+					onClick={() => setMobilePanel("chat")}
+					className="h-8 px-3 text-xs"
+				>
+					Chat
+				</Button>
+				<Button
+					variant={mobilePanel === "people" ? "default" : "secondary"}
+					onClick={() => setMobilePanel("people")}
+					className="h-8 px-3 text-xs"
+				>
+					People
+				</Button>
+				<Button
+					variant={mobilePanel === "room" ? "default" : "secondary"}
+					onClick={() => setMobilePanel("room")}
+					className="h-8 px-3 text-xs"
+				>
+					Room
+				</Button>
+			</div>
+
+			<div className="grid h-[calc(100vh-52px)] w-full gap-3 p-3 min-h-0 lg:h-screen lg:grid-cols-[280px_1fr_320px] lg:p-4">
 				{/* LEFT COLUMN */}
-				<div className="grid h-full min-h-0 grid-rows-2 gap-3">
+				<div
+					className={`${
+						mobilePanel === "people" ? "grid" : "hidden"
+					} h-full min-h-0 grid-rows-2 gap-3 lg:grid`}
+				>
 					{/* Profile */}
 					<Card>
 						<Profile
@@ -45,12 +77,26 @@ function App() {
 				</div>
 
 				{/* CENTER CHAT */}
-				<Card className="h-full min-h-0">
-					<Chat messages={room.messages} userMap={room.userMap} onSend={room.sendMessage} />
+				<Card
+					className={`h-full min-h-0 ${
+						mobilePanel === "chat" ? "block" : "hidden"
+					} lg:block`}
+				>
+					<Chat
+						roomId={roomId}
+						participantCount={room.users.length}
+						messages={room.messages}
+						userMap={room.userMap}
+						onSend={room.sendMessage}
+					/>
 				</Card>
 
 				{/* RIGHT COLUMN */}
-				<div className="grid h-full grid-rows-2 gap-3">
+				<div
+					className={`grid h-full grid-rows-2 gap-3 ${
+						mobilePanel === "room" ? "grid" : "hidden"
+					} lg:grid`}
+				>
 					{/* Room info */}
 					<RoomInfo
 						roomId={roomId}

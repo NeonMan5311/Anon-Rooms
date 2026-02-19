@@ -11,6 +11,7 @@ type RoomUser = {
 type RoomMessage = {
 	id: string;
 	senderId: string;
+	senderName?: string;
 	text: string;
 	timestamp: number;
 	isMe?: boolean;
