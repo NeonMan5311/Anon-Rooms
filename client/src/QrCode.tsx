@@ -3,9 +3,6 @@ import { Copy, QrCode  as Qr_code} from "lucide-react";
 import {
 	Dialog,
 	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import * as QRCode from "qrcode";
@@ -62,7 +59,7 @@ export function QrCode() {
 						variant="ghost"
 						size="icon"
 						className="h-7 w-7 text-white/40 hover:text-white hover:bg-white/10"
-						onClick={navigator.clipboard.writeText(link)}
+						onClick={()=>navigator.clipboard.writeText(link)}
 					>
 						<Copy className="w-3.5 h-3.5" />
 					</Button>
