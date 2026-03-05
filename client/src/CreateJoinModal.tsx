@@ -19,7 +19,7 @@ export function CreateJoinModal({ onCreate, onJoin }: Props) {
 
 	const backendUrl =
 		import.meta.env.VITE_BACKEND_URL?.replace(/\/$/, "") ??
-		"http://localhost:3000";
+		"https://anon-rooms.onrender.com";
 
 	const createRoom = async () => {
 		if (isCreating || isJoining || createRequestSent) return;
