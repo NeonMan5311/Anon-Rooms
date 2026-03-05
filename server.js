@@ -9,7 +9,7 @@ import { startCleanup } from "./cleanup.js";
 const app = express();
 app.use(
 	cors({
-		origin: "https://anon-rooms.vercel.app/",
+		origin: "https://anon-rooms.vercel.app",
 		methods: ["GET", "POST"],
 		credentials: true,
 	})
