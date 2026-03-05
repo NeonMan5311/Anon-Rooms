@@ -4,6 +4,7 @@ import { Card } from "./components/ui/card";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 
+import { QrCode } from "./QrCode";
 type RoomInfoProps = {
 	roomId: string;
 	expiresAt: number; // unix timestamp (ms)
@@ -59,6 +60,7 @@ export function RoomInfo({ roomId, expiresAt, hostName }: RoomInfoProps) {
 					>
 						<Copy className="w-3.5 h-3.5" />
 					</Button>
+					<QrCode /> 
 				</div>
 			</div>
 
