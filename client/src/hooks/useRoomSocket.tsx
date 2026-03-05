@@ -29,7 +29,7 @@ export function useRoomSocket(roomId: string, clientId: string) {
 
 	useEffect(() => {
 		const socket = io(
-			import.meta.env.VITE_BACKEND_URL ?? "http://localhost:3000"
+			import.meta.env.VITE_BACKEND_URL ?? "https://anon-rooms.onrender.com"
 		);
 
 		socketRef.current = socket;
