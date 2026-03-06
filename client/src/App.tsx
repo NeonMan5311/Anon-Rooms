@@ -55,7 +55,7 @@ function App() {
 				<div
 					className={`${
 						mobilePanel === "people" ? "grid" : "hidden"
-					} h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] gap-3 lg:grid lg:grid-rows-2`}
+					} h-full min-h-0 min-w-0 grid-rows-[auto_minmax(0,1fr)] gap-3 lg:grid lg:grid-rows-2`}
 				>
 					{/* Profile */}
 					<Card>
@@ -80,7 +80,7 @@ function App() {
 				<Card
 					className={`h-full min-h-0 ${
 						mobilePanel === "chat" ? "block" : "hidden"
-					} lg:block`}
+					} min-w-0 lg:block`}
 				>
 					<Chat
 						roomId={roomId}
@@ -96,7 +96,7 @@ function App() {
 				<div
 					className={`grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-3 ${
 						mobilePanel === "room" ? "grid" : "hidden"
-					} lg:grid lg:grid-rows-2`}
+					} min-w-0 lg:grid lg:grid-rows-2`}
 				>
 					{/* Room info */}
 					<RoomInfo

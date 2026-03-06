@@ -187,7 +187,7 @@ export function Chat({
 					className="hidden"
 					accept=".jpg,.jpeg,.png,.webp,.pdf,.txt,.zip"
 				/>
-				<div className="flex items-end gap-2">
+				<div className="flex min-w-0 items-end gap-2">
 					<Button
 						onClick={handleAttachClick}
 						variant="secondary"
@@ -201,7 +201,7 @@ export function Chat({
 						onChange={(e) => setMessage(e.target.value)}
 						onKeyDown={handleInputKeyDown}
 						rows={1}
-						className="max-h-32 min-h-[42px] flex-1 resize-none rounded-xl bg-black px-4 py-2 outline-none"
+						className="max-h-32 min-h-[42px] min-w-0 flex-1 resize-none rounded-xl bg-black px-4 py-2 outline-none"
 						placeholder="Type a message…"
 					/>
 					<Button onClick={handleSend} disabled={isSendDisabled} className="shrink-0">
