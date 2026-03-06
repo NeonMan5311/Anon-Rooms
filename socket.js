@@ -121,6 +121,41 @@ export function registerSocketHandlers(io) {
 			io.to(currentRoom.id).emit("NEW_MESSAGE", message);
 		});
 
+		socket.on("SEND_FILE_MESSAGE", (payload = {}) => {
+			const { fileUrl, fileName, fileSize, mimeType } = payload;
+
+			if (!currentRoom || !currentUser) return;
+			if (Date.now() > currentRoom.expiresAt) return;
+
+			if (
+				typeof fileUrl !== "string" ||
+				typeof fileName !== "string" ||
+				typeof fileSize !== "number" ||
+				typeof mimeType !== "string"
+			) {
+				return;
+			}
+
+			const message = {
+				id: id("msg_"),
+				type: "file",
+				senderId: currentUser.roomUserId,
+				senderName: currentUser.displayName,
+				text: "",
+				timestamp: now(),
+				file: {
+					url: fileUrl,
+					name: fileName.slice(0, 255),
+					size: fileSize,
+					mimeType,
+				},
+			};
+
+			currentRoom.messages.push(message);
+
+			io.to(currentRoom.id).emit("NEW_MESSAGE", message);
+		});
+
 		/*PROFILE UPDATE
 		*/
 		socket.on("UPDATE_PROFILE", (payload = {}) => {

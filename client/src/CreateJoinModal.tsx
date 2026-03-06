@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { getBackendBaseUrl } from "@/lib/env";
 
 type Props = {
 	onCreate: (roomId: string) => void;
@@ -17,9 +18,7 @@ export function CreateJoinModal({ onCreate, onJoin }: Props) {
 	const cleanRoomId = roomId.trim();
 	const canJoin = cleanRoomId.length >= 4;
 
-	const backendUrl =
-		import.meta.env.VITE_BACKEND_URL?.replace(/\/$/, "") ??
-		"https://anon-rooms.onrender.com";
+	const backendUrl = getBackendBaseUrl();
 
 	const createRoom = async () => {
 		if (isCreating || isJoining || createRequestSent) return;

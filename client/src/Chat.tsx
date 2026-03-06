@@ -1,6 +1,7 @@
 import React from "react";
 import { Button } from "./components/ui/button";
 import { MessageList } from "./MessageList";
+import { getBackendBaseUrl } from "@/lib/env";
 
 type ChatProps = {
 	roomId: string;
@@ -10,10 +11,23 @@ type ChatProps = {
 		senderId: string;
 		text: string;
 		timestamp: number;
+		type?: "text" | "file";
+		file?: {
+			url: string;
+			name: string;
+			size: number;
+			mimeType: string;
+		};
 		isMe?: boolean;
 	}[];
 	userMap: Map<string, string>;
 	onSend: (text: string) => void;
+	onSendFile: (file: {
+		fileUrl: string;
+		fileName: string;
+		fileSize: number;
+		mimeType: string;
+	}) => void;
 };
 
 export function Chat({
@@ -21,14 +35,22 @@ export function Chat({
 	participantCount,
 	messages,
 	onSend,
+	onSendFile,
 	userMap,
 }: ChatProps) {
 	const [message, setMessage] = React.useState("");
+	const [uploadError, setUploadError] = React.useState<string | null>(null);
+	const [uploadingFileName, setUploadingFileName] = React.useState<string | null>(
+		null
+	);
 	const [isNearBottom, setIsNearBottom] = React.useState(true);
 	const [unreadCount, setUnreadCount] = React.useState(0);
 	const scrollRef = React.useRef<HTMLDivElement | null>(null);
+	const fileInputRef = React.useRef<HTMLInputElement | null>(null);
 
-	const isSendDisabled = !message.trim();
+	const backendBaseUrl = getBackendBaseUrl();
+
+	const isSendDisabled = !message.trim() || Boolean(uploadingFileName);
 
 	const scrollToBottom = React.useCallback((behavior: ScrollBehavior = "smooth") => {
 		const el = scrollRef.current;
@@ -73,6 +95,56 @@ export function Chat({
 		}
 	};
 
+	const handleAttachClick = () => {
+		if (uploadingFileName) return;
+		fileInputRef.current?.click();
+	};
+
+	const handleFileSelected = async (
+		e: React.ChangeEvent<HTMLInputElement>
+	) => {
+		const selectedFile = e.target.files?.[0];
+		e.target.value = "";
+
+		if (!selectedFile) return;
+
+		setUploadError(null);
+		setUploadingFileName(selectedFile.name);
+
+		try {
+			const formData = new FormData();
+			formData.append("file", selectedFile);
+			formData.append("roomId", roomId);
+
+			const response = await fetch(`${backendBaseUrl}/upload`, {
+				method: "POST",
+				body: formData,
+			});
+
+			const result = await response.json();
+
+			if (!response.ok) {
+				throw new Error(result.error ?? "Upload failed");
+			}
+
+			onSendFile({
+				fileUrl: result.fileUrl,
+				fileName: result.fileName,
+				fileSize: result.fileSize,
+				mimeType: result.mimeType,
+			});
+
+			setTimeout(() => scrollToBottom("smooth"), 0);
+		} catch (error) {
+			const fallbackMessage = "Upload failed. Please try again.";
+			setUploadError(
+				error instanceof Error && error.message ? error.message : fallbackMessage
+			);
+		} finally {
+			setUploadingFileName(null);
+		}
+	};
+
 	return (
 		<div className="flex h-full w-full min-h-0 flex-col overflow-hidden">
 			<div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-[#171717]/95 px-6 py-3 backdrop-blur">
@@ -105,7 +177,21 @@ export function Chat({
 
 			{/* Input */}
 			<div className="shrink-0 border-t border-white/10 p-4">
+				<input
+					ref={fileInputRef}
+					type="file"
+					onChange={handleFileSelected}
+					className="hidden"
+					accept=".jpg,.jpeg,.png,.webp,.pdf,.txt,.zip"
+				/>
 				<div className="flex items-end gap-2">
+					<Button
+						onClick={handleAttachClick}
+						variant="secondary"
+						disabled={Boolean(uploadingFileName)}
+					>
+						Attach
+					</Button>
 					<textarea
 						value={message}
 						onChange={(e) => setMessage(e.target.value)}
@@ -115,9 +201,17 @@ export function Chat({
 						placeholder="Type a message…"
 					/>
 					<Button onClick={handleSend} disabled={isSendDisabled}>
-						Send
+						{uploadingFileName ? "Uploading..." : "Send"}
 					</Button>
 				</div>
+				{uploadingFileName && (
+					<p className="mt-2 text-[11px] text-blue-300">
+						Uploading {uploadingFileName}...
+					</p>
+				)}
+				{uploadError && (
+					<p className="mt-2 text-[11px] text-red-400">{uploadError}</p>
+				)}
 				<p className="mt-2 text-[11px] text-white/40">
 					Enter to send • Shift+Enter for a new line
 				</p>

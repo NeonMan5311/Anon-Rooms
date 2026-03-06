@@ -88,6 +88,7 @@ function App() {
 						messages={room.messages}
 						userMap={room.userMap}
 						onSend={room.sendMessage}
+						onSendFile={room.sendFileMessage}
 					/>
 				</Card>
 
@@ -106,17 +107,6 @@ function App() {
 
 					{/* Actions */}
 					<Card className="p-4 flex flex-col gap-2">
-						<Button
-							variant="secondary"
-							className="text-xs w-full"
-							onClick={() => {
-								// placeholder for file upload
-								alert("File upload coming soon");
-							}}
-						>
-							Send File
-						</Button>
-
 						<Button
 							variant="secondary"
 							className="w-full"

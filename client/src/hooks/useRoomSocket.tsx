@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
+import { getBackendBaseUrl } from "@/lib/env";
 
 type RoomUser = {
 	id: string;
@@ -14,6 +15,13 @@ type RoomMessage = {
 	senderName?: string;
 	text: string;
 	timestamp: number;
+	type?: "text" | "file";
+	file?: {
+		url: string;
+		name: string;
+		size: number;
+		mimeType: string;
+	};
 	isMe?: boolean;
 };
 
@@ -28,9 +36,7 @@ export function useRoomSocket(roomId: string, clientId: string) {
 	const selfIdRef = useRef<string | null>(null);
 
 	useEffect(() => {
-		const socket = io(
-			import.meta.env.VITE_BACKEND_URL ?? "https://anon-rooms.onrender.com"
-		);
+		const socket = io(getBackendBaseUrl());
 
 		socketRef.current = socket;
 
@@ -114,6 +120,15 @@ export function useRoomSocket(roomId: string, clientId: string) {
 		socketRef.current?.emit("SEND_MESSAGE", { text });
 	};
 
+	const sendFileMessage = (file: {
+		fileUrl: string;
+		fileName: string;
+		fileSize: number;
+		mimeType: string;
+	}) => {
+		socketRef.current?.emit("SEND_FILE_MESSAGE", file);
+	};
+
 	const updateProfile = (data: {
 		displayName?: string;
 		avatar?: { seed: string };
@@ -146,6 +161,7 @@ export function useRoomSocket(roomId: string, clientId: string) {
 		selfUser,
 		userMap,
 		sendMessage,
+		sendFileMessage,
 		updateProfile,
 		toggleMic,
 	};
