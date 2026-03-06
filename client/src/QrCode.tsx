@@ -3,6 +3,8 @@ import { Copy, QrCode  as Qr_code} from "lucide-react";
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
+	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import * as QRCode from "qrcode";
@@ -10,7 +12,7 @@ import { Button } from "./components/ui/button";
 export function QrCode() {
 	const [qrUrl, setQrUrl] = useState("");
 	const link = window.location.href;
-	console.log(link);
+
 	useEffect(() => {
 		let isMounted = true;
 
@@ -34,7 +36,7 @@ export function QrCode() {
 
 	return (
 		<Dialog>
-			<DialogTrigger>
+			<DialogTrigger asChild>
 				<Button
 					variant="ghost"
 					size="icon"
@@ -44,6 +46,10 @@ export function QrCode() {
 				</Button>
 			</DialogTrigger>
 			<DialogContent className="w-fit px-10 bg-black/80 border border-white/10">
+				<DialogTitle className="sr-only">Room invite QR code</DialogTitle>
+				<DialogDescription className="sr-only">
+					Scan this QR code or copy the room invite link.
+				</DialogDescription>
 				<div className="flex items-center justify-center ">
 					<img
 						src={qrUrl}
