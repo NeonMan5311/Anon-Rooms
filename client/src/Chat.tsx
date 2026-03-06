@@ -147,9 +147,9 @@ export function Chat({
 
 	return (
 		<div className="flex h-full w-full min-h-0 flex-col overflow-hidden">
-			<div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-[#171717]/95 px-6 py-3 backdrop-blur">
-				<div className="text-sm font-medium text-white/90">Room {roomId}</div>
-				<div className="flex items-center gap-3 text-xs text-white/60">
+			<div className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-white/10 bg-[#171717]/95 px-3 py-3 backdrop-blur sm:px-6">
+				<div className="truncate text-sm font-medium text-white/90">Room {roomId}</div>
+				<div className="flex shrink-0 items-center gap-2 text-xs text-white/60 sm:gap-3">
 					<span>{participantCount} online</span>
 					<span className="flex items-center gap-1 text-green-400">
 						<span className="inline-block h-2 w-2 rounded-full bg-green-400" />
@@ -159,7 +159,10 @@ export function Chat({
 			</div>
 
 			{/* Messages */}
-			<div ref={scrollRef} className="relative flex-1 min-h-0 overflow-y-auto px-6 pt-4">
+			<div
+				ref={scrollRef}
+				className="relative flex-1 min-h-0 overflow-y-auto px-3 pt-4 sm:px-6"
+			>
 				<MessageList messages={messages} userMap={userMap} />
 
 				{!isNearBottom && unreadCount > 0 && (
@@ -176,7 +179,7 @@ export function Chat({
 			</div>
 
 			{/* Input */}
-			<div className="shrink-0 border-t border-white/10 p-4">
+			<div className="shrink-0 border-t border-white/10 p-3 sm:p-4">
 				<input
 					ref={fileInputRef}
 					type="file"
@@ -189,6 +192,7 @@ export function Chat({
 						onClick={handleAttachClick}
 						variant="secondary"
 						disabled={Boolean(uploadingFileName)}
+						className="shrink-0"
 					>
 						Attach
 					</Button>
@@ -200,7 +204,7 @@ export function Chat({
 						className="max-h-32 min-h-[42px] flex-1 resize-none rounded-xl bg-black px-4 py-2 outline-none"
 						placeholder="Type a message…"
 					/>
-					<Button onClick={handleSend} disabled={isSendDisabled}>
+					<Button onClick={handleSend} disabled={isSendDisabled} className="shrink-0">
 						{uploadingFileName ? "Uploading..." : "Send"}
 					</Button>
 				</div>

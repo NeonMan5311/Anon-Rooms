@@ -19,7 +19,7 @@ const allowedOrigins = [
 	process.env.FRONTEND_URL_DEV,
 	process.env.FRONTEND_URL_PROD,
 ].filter(Boolean);
-
+console.log("Allowed Origins:", allowedOrigins);
 if (!fs.existsSync(uploadsDir)) {
 	fs.mkdirSync(uploadsDir, { recursive: true });
 }
