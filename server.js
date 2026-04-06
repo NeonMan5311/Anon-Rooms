@@ -58,11 +58,6 @@ const upload = multer({
 	limits: { fileSize: 10 * 1024 * 1024 },
 	fileFilter: (_req, file, cb) => {
 		const ext = path.extname(file.originalname || "").toLowerCase();
-		if (!ALLOWED_MIME_TYPES.has(file.mimetype) || !ALLOWED_EXTENSIONS.has(ext)) {
-			cb(new Error("Unsupported file type"));
-			return;
-		}
-
 		cb(null, true);
 	},
 });
